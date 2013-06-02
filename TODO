@@ -1,5 +1,6 @@
 track servers:
 [x] OnNewServer
+[x] OnServerConnect
 [x] OnServerQuit
 [ ] MOTD ?
 [ ] ping ?

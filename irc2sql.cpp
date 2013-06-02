@@ -191,6 +191,15 @@ class M_irc2sql : public Module
 		this->RunQuery(query);
 	}
 
+	/* Called when anope connects to its uplink
+	 * We can not use OnNewServer to get our own server struct because this event
+	 * is triggered before module load
+	 */
+	void OnServerConnect() anope_override
+	{
+		this->OnNewServer(Me);
+	}
+
 	void OnServerQuit(Server *server) anope_override
 	{
 		query = "INSERT DELAYED INTO `" + prefix + "servers` (name, online, split_time) "

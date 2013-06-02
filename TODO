@@ -1,0 +1,40 @@
+track servers:
+[x] OnNewServer
+[x] OnServerQuit
+[ ] MOTD ?
+[ ] ping ?
+[ ] version ?
+
+track users:
+[ ] OnUserConnect
+[ ] OnUserQuit
+[ ] OnUserNickChange
+[ ] OnFingerprint (store the users fingerprint in the user table)
+[ ] OnUserModeUnset
+[ ] OnUserModeSet
+[ ] OnNickLogin (update mode +r and accountinfo)
+[ ] OnNickLogout (update mode +r and accountinfo)
+[ ] host change?
+[ ] provide geoiplookup through external script/mysql trigger (low priority)
+
+track channels:
+[ ] OnCreateChan (channel creation)
+[ ] OnDelChan (last user parts the channel and its not permanent)
+[ ] OnChannelModeSet
+[ ] OnChannelModeUnset
+[ ] OnTopicUpdated
+[ ] OnLeaveChannel (From either parting, being kicked, or quitting/killed)
+[ ] OnJoinChannel
+[ ] OnSetCurrentModes ?
+
+other stuff:
+[ ] OnAddXLine (xlines are not tracked by current phpanope/MagIRC, so this is low priority)
+[ ] OnDelXLine
+
+
+unclear?
+[?] OnChannelModeAdd ? (ircd depend?)
+[?] OnBotAssign (make the botserv join the channel?)
+[?] OnBotUnassign (make the botserv part the channel?)
+[?] OnCreateBot
+[?] OnBotKick

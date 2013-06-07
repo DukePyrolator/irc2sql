@@ -31,6 +31,11 @@ track channels:
 other stuff:
 [ ] OnAddXLine (xlines are not tracked by current phpanope/MagIRC, so this is low priority)
 [ ] OnDelXLine
+[ ] cleanup "script" as mysql trigger to remove users/servers who are not online after a given time
+    [ ] readd a timestamp field to the tables to track when they gone off
+    [ ] add config options for how long we want to keep offline users + servers
+[ ] disable/remove any triggers on shutdown 
+    (make it a part of the stored procedure that cleans the users on shutdown)
 
 
 unclear?
@@ -39,3 +44,5 @@ unclear?
 [?] OnBotUnassign (make the botserv part the channel?)
 [?] OnCreateBot
 [?] OnBotKick
+
+

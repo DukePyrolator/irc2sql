@@ -2,17 +2,20 @@ track servers:
 [x] OnNewServer
 [x] OnServerConnect
 [x] OnServerQuit
-[ ] MOTD ?
-[ ] ping ?
-[ ] version ?
 
 track users:
-[ ] OnUserConnect
-[ ] OnUserQuit
-[ ] OnUserNickChange
+[ ] OnUserConnect - make a stored procedure
+	[ ] add a new user to the user table / update existing user?
+	[ ] get the server id
+	[ ] increase the user count in the server info?
+[ ] OnUserQuit - make a stored procedure
+	[ ] remove the user from the user table
+	    or set it to inactive to provide a /whowas function?
+	[ ] decrease the user count in the server info?
+[ ] OnUserNickChange - use a simple UPDATE query
 [ ] OnFingerprint (store the users fingerprint in the user table)
-[ ] OnUserModeUnset
 [ ] OnUserModeSet
+[ ] OnUserModeUnset
 [ ] OnNickLogin (update mode +r and accountinfo)
 [ ] OnNickLogout (update mode +r and accountinfo)
 [ ] host change?
@@ -31,12 +34,11 @@ track channels:
 other stuff:
 [ ] OnAddXLine (xlines are not tracked by current phpanope/MagIRC, so this is low priority)
 [ ] OnDelXLine
-[ ] cleanup "script" as mysql trigger to remove users/servers who are not online after a given time
+[ ] cleanup "script" as mysql event to remove users/servers who are not online after a given time
     [ ] readd a timestamp field to the tables to track when they gone off
     [ ] add config options for how long we want to keep offline users + servers
-[ ] disable/remove any triggers on shutdown 
+[ ] disable/remove any events on shutdown
     (make it a part of the stored procedure that cleans the users on shutdown)
-
 
 unclear?
 [?] OnChannelModeAdd ? (ircd depend?)
@@ -44,5 +46,9 @@ unclear?
 [?] OnBotUnassign (make the botserv part the channel?)
 [?] OnCreateBot
 [?] OnBotKick
-
-
+[?] MOTD - requires modification of the protocol modules
+[?] SERVER PING - requires modification of the protocol modules
+    I'm not sure if we really want this feature.
+[?] SERVER VERSION - requires modification of the protocol modules
+[?] CLIENT VERSION - probably requires a pseudoclient on some ircds/clients?
+    needs testing

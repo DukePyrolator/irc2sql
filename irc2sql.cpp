@@ -56,7 +56,7 @@ void IRC2SQL::OnServerQuit(Server *server) anope_override
 void IRC2SQL::OnUserConnect(User *u, bool &exempt)
 {
 	query = "CALL " + prefix + "UserConnect(@nick@,@host@,@vhost@,@chost@,@realname@,@ip@,@ident@,@vident@,"
-			"@account@,@fingerprint@,@signon@,@server@,@uuid@,@modes@)";
+			"@account@,@fingerprint@,@signon@,@server@,@uuid@,@modes@,@oper@)";
 	query.SetValue("nick", u->nick);
 	query.SetValue("host", u->host);
 	query.SetValue("vhost", u->vhost);
@@ -71,6 +71,7 @@ void IRC2SQL::OnUserConnect(User *u, bool &exempt)
 	query.SetValue("server", u->server->GetName());
 	query.SetValue("uuid", u->GetUID());
 	query.SetValue("modes", u->GetModes());
+	query.SetValue("oper", u->HasMode("OPER") ? "Y" : "N");
 	this->RunQuery(query);
 }
 
@@ -94,10 +95,39 @@ void IRC2SQL::OnUserNickChange(User *u, const Anope::string &oldnick)
 
 void IRC2SQL::OnFingerprint(User *u)
 {
-	query = "UPDATE `" + prefix + "user` SET fingerprint=@fingerprint@ where nick=@nick@";
+	query = "UPDATE `" + prefix + "user` SET fingerprint=@fingerprint@ WHERE nick=@nick@";
 	query.SetValue("fingerprint", u->fingerprint);
 	query.SetValue("nick", u->nick);
 	this->RunQuery(query);
 }
+
+void IRC2SQL::OnUserModeSet(User *u, const Anope::string &mname)
+{
+	query = "UPDATE `" + prefix + "user` SET modes=@modes@, oper=@oper@ WHERE nick=@nick@";
+	query.SetValue("nick", u->nick);
+	query.SetValue("modes", u->GetModes());
+	query.SetValue("oper", u->HasMode("OPER") ? "Y" : "N");
+	this->RunQuery(query);
+}
+
+void IRC2SQL::OnUserModeUnset(User *u, const Anope::string &mname)
+{
+	this->OnUserModeSet(u, mname);
+}
+
+void IRC2SQL::OnUserLogin(User *u)
+{
+	query = "UPDATE `" + prefix + "user` SET account=@account@ WHERE nick=@nick@";
+	query.SetValue("nick", u->nick);
+	query.SetValue("account", u->Account() ? u->Account()->display : "");
+	this->RunQuery(query);
+}
+
+void IRC2SQL::OnNickLogout(User *u)
+{
+	this->OnUserLogin(u);
+}
+
+
 
 MODULE_INIT(IRC2SQL)

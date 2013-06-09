@@ -13,11 +13,11 @@ track users:
 	[x] decrease the user count in the server info
 [x] OnUserNickChange - use a simple UPDATE query
 [x] OnFingerprint (store the users fingerprint in the user table)
-[ ] OnUserModeSet
-[ ] OnUserModeUnset
-[ ] OnNickLogin (update mode +r and accountinfo)
-[ ] OnNickLogout (update mode +r and accountinfo)
-[ ] host change?
+[x] OnUserModeSet
+[x] OnUserModeUnset
+[x] OnUserLogin
+[x] OnNickLogout
+[ ] tracking host change requires adding a new event to anope
 [ ] provide geoiplookup through external script/mysql trigger (low priority)
 
 track channels:

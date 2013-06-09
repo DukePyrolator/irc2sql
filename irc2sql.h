@@ -53,6 +53,11 @@ class IRC2SQL : public Module
 	void OnUserQuit(User *u, const Anope::string &msg);
 	void OnUserNickChange(User *u, const Anope::string &oldnick);
 	void OnFingerprint(User *u);
+	void OnUserModeSet(User *u, const Anope::string &mname);
+	void OnUserModeUnset(User *u, const Anope::string &mname);
+	void OnUserLogin(User *u);
+	void OnNickLogout(User *u);
+
 };
 
 

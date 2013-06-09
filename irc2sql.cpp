@@ -84,5 +84,20 @@ void IRC2SQL::OnUserQuit(User *u, const Anope::string &msg)
 	this->RunQuery(query);
 }
 
-MODULE_INIT(IRC2SQL)
+void IRC2SQL::OnUserNickChange(User *u, const Anope::string &oldnick)
+{
+	query = "UPDATE `" + prefix + "user` SET nick=@newnick@ WHERE nick=@oldnick@";
+	query.SetValue("newnick", u->nick);
+	query.SetValue("oldnick", oldnick);
+	this->RunQuery(query);
+}
 
+void IRC2SQL::OnFingerprint(User *u)
+{
+	query = "UPDATE `" + prefix + "user` SET fingerprint=@fingerprint@ where nick=@nick@";
+	query.SetValue("fingerprint", u->fingerprint);
+	query.SetValue("nick", u->nick);
+	this->RunQuery(query);
+}
+
+MODULE_INIT(IRC2SQL)

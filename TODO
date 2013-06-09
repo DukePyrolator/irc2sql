@@ -11,8 +11,8 @@ track users:
 [x] OnUserQuit - make a stored procedure
 	[x] remove the user from the user table
 	[x] decrease the user count in the server info
-[ ] OnUserNickChange - use a simple UPDATE query
-[ ] OnFingerprint (store the users fingerprint in the user table)
+[x] OnUserNickChange - use a simple UPDATE query
+[x] OnFingerprint (store the users fingerprint in the user table)
 [ ] OnUserModeSet
 [ ] OnUserModeUnset
 [ ] OnNickLogin (update mode +r and accountinfo)

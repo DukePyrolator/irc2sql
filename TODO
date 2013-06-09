@@ -52,3 +52,4 @@ unclear?
 [?] SERVER VERSION - requires modification of the protocol modules
 [?] CLIENT VERSION - probably requires a pseudoclient on some ircds/clients?
     needs testing
+[?] SWHOIS - requires modification of the protocol modules / adding new events

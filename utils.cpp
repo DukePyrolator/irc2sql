@@ -27,7 +27,7 @@ void IRC2SQL::GetTables()
 	r = this->sql->RunQuery(query);
 	for (int i = 0; i < r.Rows(); ++i)
 	{
-	ProcedureList.push_back(r.Get(i, "Name"));
+		ProcedureList.push_back(r.Get(i, "Name"));
 	}
 	query = "SHOW EVENTS WHERE `Db` = Database();";
 	r = this->sql->RunQuery(query);
@@ -35,11 +35,6 @@ void IRC2SQL::GetTables()
 	{
 		EventList.push_back(r.Get(i, "Name"));
 	}
-}
-
-void IRC2SQL::DropTable(const Anope::string &table)
-{
-	this->RunQuery(SQL::Query("DROP TABLE " + table));
 }
 
 bool IRC2SQL::HasTable(const Anope::string &table)

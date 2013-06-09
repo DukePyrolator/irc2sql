@@ -4,14 +4,13 @@ track servers:
 [x] OnServerQuit
 
 track users:
-[ ] OnUserConnect - make a stored procedure
-	[ ] add a new user to the user table / update existing user?
-	[ ] get the server id
-	[ ] increase the user count in the server info?
-[ ] OnUserQuit - make a stored procedure
-	[ ] remove the user from the user table
-	    or set it to inactive to provide a /whowas function?
-	[ ] decrease the user count in the server info?
+[x] OnUserConnect - make a stored procedure
+	[x] add a new user to the user table / update existing user?
+	[x] get the server id
+	[x] increase the user count in the server info
+[x] OnUserQuit - make a stored procedure
+	[x] remove the user from the user table
+	[x] decrease the user count in the server info
 [ ] OnUserNickChange - use a simple UPDATE query
 [ ] OnFingerprint (store the users fingerprint in the user table)
 [ ] OnUserModeSet
@@ -53,3 +52,11 @@ unclear?
 [?] CLIENT VERSION - probably requires a pseudoclient on some ircds/clients?
     needs testing
 [?] SWHOIS - requires modification of the protocol modules / adding new events
+
+
+***************************************************************************************
+
+Known bugs and limitations:
+============================
+ - botserv bots have no servid, because they get introduced before the local server
+     fixes itself on the next anope start if we dont drop the server table

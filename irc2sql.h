@@ -30,7 +30,6 @@ class IRC2SQL : public Module
 
 	void RunQuery(const SQL::Query &q);
 	void GetTables();
-	void DropTable(const Anope::string &table);
 
 	bool HasTable(const Anope::string &table);
 	bool HasProcedure(const Anope::string &table);
@@ -51,6 +50,7 @@ class IRC2SQL : public Module
 	void OnServerConnect() anope_override;
 	void OnServerQuit(Server *server) anope_override;
 	void OnUserConnect(User *u, bool &exempt);
+	void OnUserQuit(User *u, const Anope::string &msg);
 };
 
 

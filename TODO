@@ -21,13 +21,13 @@ track users:
 [ ] provide geoiplookup through external script/mysql trigger (low priority)
 
 track channels:
-[ ] OnCreateChan (channel creation)
-[ ] OnDelChan (last user parts the channel and its not permanent)
+[x] OnChannelCreate
+[x] OnChannelDelete
 [ ] OnChannelModeSet
 [ ] OnChannelModeUnset
 [ ] OnTopicUpdated
-[ ] OnLeaveChannel (From either parting, being kicked, or quitting/killed)
-[ ] OnJoinChannel
+[x] OnLeaveChannel (From either parting, being kicked, or quitting/killed)
+[x] OnJoinChannel
 [ ] OnSetCurrentModes ?
 
 other stuff:
@@ -60,3 +60,4 @@ Known bugs and limitations:
 ============================
  - botserv bots have no servid, because they get introduced before the local server
      fixes itself on the next anope start if we dont drop the server table
+ - OnJoinChannel is not called for botserv bots

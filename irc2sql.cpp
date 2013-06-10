@@ -128,6 +128,50 @@ void IRC2SQL::OnNickLogout(User *u)
 	this->OnUserLogin(u);
 }
 
+void IRC2SQL::OnChannelCreate(Channel *c)
+{
+	query = "INSERT INTO `" + prefix + "chan` (channel, topic, topicauthor, topictime, modes) "
+		"VALUES (@channel@,@topic@,@topicauthor@,@topictime@,@modes@) "
+		"ON DUPLICATE KEY UPDATE channel=VALUES(channel), topic=VALUES(topic),"
+			"topicauthor=VALUES(topicauthor), topictime=VALUES(topictime), modes=VALUES(modes)";
+	query.SetValue("channel", c->name);
+	query.SetValue("topic", c->topic);
+	query.SetValue("topicauthor", c->topic_setter);
+	query.SetValue("topictime", c->topic_ts);
+	query.SetValue("modes", c->GetModes(true,true));
+	this->RunQuery(query);
+}
 
+void IRC2SQL::OnChannelDelete(Channel *c)
+{
+	query = "DELETE FROM `" + prefix + "chan` WHERE channel=@channel@";
+	query.SetValue("channel",  c->name);
+	this->RunQuery(query);
+}
+
+void IRC2SQL::OnJoinChannel(User *u, Channel *c)
+{
+	Anope::string modes;
+	ChanUserContainer *cu = u->FindChannel(c);
+	if (cu)
+		modes = cu->status.Modes();
+
+	query = "CALL " + prefix + "JoinUser(@nick@,@channel@,@modes@)";
+	query.SetValue("nick", u->nick);
+	query.SetValue("channel", c->name);
+	query.SetValue("modes", modes);
+	this->RunQuery(query);
+}
+
+void IRC2SQL::OnLeaveChannel(User *u, Channel *c)
+{
+	if (quitting)
+		return;
+
+	query = "CALL " + prefix + "PartUser(@nick@,@channel@)";
+	query.SetValue("nick", u->nick);
+	query.SetValue("channel", c->name);
+	this->RunQuery(query);
+}
 
 MODULE_INIT(IRC2SQL)

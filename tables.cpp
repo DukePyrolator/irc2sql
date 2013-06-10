@@ -2,13 +2,18 @@
 
 void IRC2SQL::CheckTables()
 {
-	// TODO: remove the DropTable commands when the table layout is done
+	/* TODO: remove the DropTable commands when the table layout is done
+	 *       perhaps we should drop/recreate some tables by default in case anope crashed
+	 *       and was unable to clear the content (ison)
+	 *       TRUNCATE could perform better for this?
+	 */
 	SQL::Result r;
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "clients"));
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "countries"));
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "user"));
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "server"));
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "chan"));
+	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "ison"));
 
 	this->GetTables();
 	/* TODO: do we need this table? we can store the client version in the user table
@@ -73,7 +78,6 @@ void IRC2SQL::CheckTables()
 			"`chanid` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,"
 			"`channel` varchar(255) NOT NULL,"
 			"`currentusers` int(15) NOT NULL DEFAULT 0,"
-			"`maxusers` int(15) NOT NULL DEFAULT 0,"
 			"`topic` varchar(255) DEFAULT NULL,"
 			"`topicauthor` varchar(255) DEFAULT NULL,"
 			"`topictime` datetime DEFAULT NULL,"
@@ -112,6 +116,17 @@ void IRC2SQL::CheckTables()
 			"PRIMARY KEY (`nickid`),"
 			"UNIQUE KEY `nick` (`nick`),"
 			"KEY `servid` (`servid`)"
+			") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+		this->RunQuery(query);
+	}
+	if (!this->HasTable(prefix + "ison"))
+	{
+		query = "CREATE TABLE `" + prefix + "ison` ("
+			"`nickid` int(11) unsigned NOT NULL default '0',"
+			"`chanid` int(11) unsigned NOT NULL default '0',"
+			"`modes` varchar(255) NOT NULL default '',"
+			"PRIMARY KEY  (`nickid`,`chanid`),"
+			"KEY `modes` (`modes`)"
 			") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 		this->RunQuery(query);
 	}
@@ -161,7 +176,35 @@ void IRC2SQL::CheckTables()
 			"UPDATE `" +  prefix + "server` "
 				"SET currentusers=0, online='N', split_time=now();"
 			"TRUNCATE TABLE `" + prefix + "user`;"
+			"TRUNCATE TABLE `" + prefix + "chan`;"
+			"TRUNCATE TABLE `" + prefix + "ison`;"
 		"END";
 	this->RunQuery(query);
 
+	if (this->HasProcedure(prefix + "JoinUser"))
+		this->RunQuery(SQL::Query("DROP PROCEDURE " + prefix + "JoinUser"));
+	query = "CREATE PROCEDURE `"+ prefix + "JoinUser`"
+		"(nick_ varchar(255), channel_ varchar(255), modes_ varchar(255)) "
+		"BEGIN "
+			"INSERT INTO `" + prefix + "ison` (nickid, chanid, modes) "
+				"SELECT u.nickid, c.chanid, modes_ "
+				"FROM " + prefix + "user AS u, " + prefix + "chan AS c "
+				"WHERE u.nick=nick_ AND c.channel=channel_;"
+			"UPDATE `" + prefix + "chan` SET currentusers=currentusers+1 "
+				"WHERE channel=channel_;"
+		"END";
+	this->RunQuery(query);
+
+	if (this->HasProcedure(prefix + "PartUser"))
+		this->RunQuery(SQL::Query("DROP PROCEDURE " + prefix + "PartUser"));
+	query = "CREATE PROCEDURE `" + prefix + "PartUser`"
+		"(nick_ varchar(255), channel_ varchar(255)) "
+		"BEGIN "
+// TODO: finish this query
+//			"DELETE FROM `" + prefix + "ison` AS ison "
+//				"WHERE 
+			"UPDATE `" + prefix + "chan` SET currentusers=currentusers-1 "
+				"WHERE channel=channel_;"
+		"END";
+	this->RunQuery(query);
 }

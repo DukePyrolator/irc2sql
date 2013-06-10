@@ -58,6 +58,12 @@ class IRC2SQL : public Module
 	void OnUserLogin(User *u);
 	void OnNickLogout(User *u);
 
+	void OnChannelCreate(Channel *c);
+	void OnChannelDelete(Channel *c);
+	void OnLeaveChannel(User *u, Channel *c);
+	void OnJoinChannel(User *u, Channel *c);
+
+
 };
 
 

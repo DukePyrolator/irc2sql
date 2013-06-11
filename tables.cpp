@@ -200,9 +200,13 @@ void IRC2SQL::CheckTables()
 	query = "CREATE PROCEDURE `" + prefix + "PartUser`"
 		"(nick_ varchar(255), channel_ varchar(255)) "
 		"BEGIN "
-// TODO: finish this query
-//			"DELETE FROM `" + prefix + "ison` AS ison "
-//				"WHERE 
+			"DELETE FROM `" + prefix + "ison` "
+				"USING `" + prefix + "ison`, `" + prefix + "user` , `"
+					  + prefix + "chan` "
+				"WHERE " + prefix + "ison.nickid = " + prefix + "user.nickid "
+					"AND " + prefix + "user.nick = nick_ "
+					"AND " + prefix + "ison.chanid = " + prefix + "chan.chanid "
+					"AND " + prefix + "chan.channel = channel_; "
 			"UPDATE `" + prefix + "chan` SET currentusers=currentusers-1 "
 				"WHERE channel=channel_;"
 		"END";

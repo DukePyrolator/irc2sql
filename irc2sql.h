@@ -26,7 +26,7 @@ class IRC2SQL : public Module
 	SQL::Query query;
 	std::vector<Anope::string> TableList, ProcedureList, EventList;
 	Anope::string prefix;
-	bool quitting;
+	bool quitting, introduced_myself;
 
 	void RunQuery(const SQL::Query &q);
 	void GetTables();
@@ -42,27 +42,26 @@ class IRC2SQL : public Module
 		Module(modname, creator, EXTRA | THIRD), sql("", ""), sqlinterface(this)
 	{
 		quitting = false;
+		introduced_myself = false;
 	}
 
 	void OnShutdown() anope_override;
 	void OnReload(Configuration::Conf *config) anope_override;
 	void OnNewServer(Server *server) anope_override;
-	void OnServerConnect() anope_override;
 	void OnServerQuit(Server *server) anope_override;
-	void OnUserConnect(User *u, bool &exempt);
-	void OnUserQuit(User *u, const Anope::string &msg);
-	void OnUserNickChange(User *u, const Anope::string &oldnick);
-	void OnFingerprint(User *u);
-	void OnUserModeSet(User *u, const Anope::string &mname);
-	void OnUserModeUnset(User *u, const Anope::string &mname);
-	void OnUserLogin(User *u);
-	void OnNickLogout(User *u);
+	void OnUserConnect(User *u, bool &exempt) anope_override;
+	void OnUserQuit(User *u, const Anope::string &msg) anope_override;
+	void OnUserNickChange(User *u, const Anope::string &oldnick) anope_override;
+	void OnFingerprint(User *u) anope_override;
+	void OnUserModeSet(User *u, const Anope::string &mname) anope_override;
+	void OnUserModeUnset(User *u, const Anope::string &mname) anope_override;
+	void OnUserLogin(User *u) anope_override;
+	void OnNickLogout(User *u) anope_override;
 
-	void OnChannelCreate(Channel *c);
-	void OnChannelDelete(Channel *c);
-	void OnLeaveChannel(User *u, Channel *c);
-	void OnJoinChannel(User *u, Channel *c);
-
+	void OnChannelCreate(Channel *c) anope_override;
+	void OnChannelDelete(Channel *c) anope_override;
+	void OnLeaveChannel(User *u, Channel *c) anope_override;
+	void OnJoinChannel(User *u, Channel *c) anope_override;
 
 };
 

@@ -33,15 +33,6 @@ void IRC2SQL::OnNewServer(Server *server) anope_override
 	this->RunQuery(query);
 }
 
-/* Called when anope connects to its uplink
- * We can not use OnNewServer to get our own server struct because this event
- * is triggered before module load
- */
-void IRC2SQL::OnServerConnect() anope_override
-{
-	this->OnNewServer(Me);
-}
-
 void IRC2SQL::OnServerQuit(Server *server) anope_override
 {
 	if (quitting)
@@ -53,8 +44,15 @@ void IRC2SQL::OnServerQuit(Server *server) anope_override
 	this->RunQuery(query);
 }
 
-void IRC2SQL::OnUserConnect(User *u, bool &exempt)
+void IRC2SQL::OnUserConnect(User *u, bool &exempt) anope_override
 {
+	if (!introduced_myself)
+
+	{
+		this->OnNewServer(Me);
+		introduced_myself = true;
+	}
+
 	query = "CALL " + prefix + "UserConnect(@nick@,@host@,@vhost@,@chost@,@realname@,@ip@,@ident@,@vident@,"
 			"@account@,@secure@,@fingerprint@,@signon@,@server@,@uuid@,@modes@,@oper@)";
 	query.SetValue("nick", u->nick);
@@ -76,7 +74,7 @@ void IRC2SQL::OnUserConnect(User *u, bool &exempt)
 	this->RunQuery(query);
 }
 
-void IRC2SQL::OnUserQuit(User *u, const Anope::string &msg)
+void IRC2SQL::OnUserQuit(User *u, const Anope::string &msg) anope_override
 {
 	if (quitting)
 		return;
@@ -86,7 +84,7 @@ void IRC2SQL::OnUserQuit(User *u, const Anope::string &msg)
 	this->RunQuery(query);
 }
 
-void IRC2SQL::OnUserNickChange(User *u, const Anope::string &oldnick)
+void IRC2SQL::OnUserNickChange(User *u, const Anope::string &oldnick) anope_override
 {
 	query = "UPDATE `" + prefix + "user` SET nick=@newnick@ WHERE nick=@oldnick@";
 	query.SetValue("newnick", u->nick);
@@ -94,7 +92,7 @@ void IRC2SQL::OnUserNickChange(User *u, const Anope::string &oldnick)
 	this->RunQuery(query);
 }
 
-void IRC2SQL::OnFingerprint(User *u)
+void IRC2SQL::OnFingerprint(User *u) anope_override
 {
 	query = "UPDATE `" + prefix + "user` SET secure=@secure@, fingerprint=@fingerprint@ WHERE nick=@nick@";
 	query.SetValue("secure", u->HasMode("SSL") || u->HasExt("SSL") ? "Y" : "N");
@@ -103,7 +101,7 @@ void IRC2SQL::OnFingerprint(User *u)
 	this->RunQuery(query);
 }
 
-void IRC2SQL::OnUserModeSet(User *u, const Anope::string &mname)
+void IRC2SQL::OnUserModeSet(User *u, const Anope::string &mname) anope_override
 {
 	query = "UPDATE `" + prefix + "user` SET modes=@modes@, oper=@oper@ WHERE nick=@nick@";
 	query.SetValue("nick", u->nick);
@@ -112,7 +110,7 @@ void IRC2SQL::OnUserModeSet(User *u, const Anope::string &mname)
 	this->RunQuery(query);
 }
 
-void IRC2SQL::OnUserModeUnset(User *u, const Anope::string &mname)
+void IRC2SQL::OnUserModeUnset(User *u, const Anope::string &mname) anope_override
 {
 	this->OnUserModeSet(u, mname);
 }
@@ -125,12 +123,12 @@ void IRC2SQL::OnUserLogin(User *u)
 	this->RunQuery(query);
 }
 
-void IRC2SQL::OnNickLogout(User *u)
+void IRC2SQL::OnNickLogout(User *u) anope_override
 {
 	this->OnUserLogin(u);
 }
 
-void IRC2SQL::OnChannelCreate(Channel *c)
+void IRC2SQL::OnChannelCreate(Channel *c) anope_override
 {
 	query = "INSERT INTO `" + prefix + "chan` (channel, topic, topicauthor, topictime, modes) "
 		"VALUES (@channel@,@topic@,@topicauthor@,@topictime@,@modes@) "
@@ -144,14 +142,14 @@ void IRC2SQL::OnChannelCreate(Channel *c)
 	this->RunQuery(query);
 }
 
-void IRC2SQL::OnChannelDelete(Channel *c)
+void IRC2SQL::OnChannelDelete(Channel *c) anope_override
 {
 	query = "DELETE FROM `" + prefix + "chan` WHERE channel=@channel@";
 	query.SetValue("channel",  c->name);
 	this->RunQuery(query);
 }
 
-void IRC2SQL::OnJoinChannel(User *u, Channel *c)
+void IRC2SQL::OnJoinChannel(User *u, Channel *c) anope_override
 {
 	Anope::string modes;
 	ChanUserContainer *cu = u->FindChannel(c);
@@ -165,7 +163,7 @@ void IRC2SQL::OnJoinChannel(User *u, Channel *c)
 	this->RunQuery(query);
 }
 
-void IRC2SQL::OnLeaveChannel(User *u, Channel *c)
+void IRC2SQL::OnLeaveChannel(User *u, Channel *c) anope_override
 {
 	if (quitting)
 		return;

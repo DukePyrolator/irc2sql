@@ -56,7 +56,7 @@ void IRC2SQL::OnServerQuit(Server *server) anope_override
 void IRC2SQL::OnUserConnect(User *u, bool &exempt)
 {
 	query = "CALL " + prefix + "UserConnect(@nick@,@host@,@vhost@,@chost@,@realname@,@ip@,@ident@,@vident@,"
-			"@account@,@fingerprint@,@signon@,@server@,@uuid@,@modes@,@oper@)";
+			"@account@,@secure@,@fingerprint@,@signon@,@server@,@uuid@,@modes@,@oper@)";
 	query.SetValue("nick", u->nick);
 	query.SetValue("host", u->host);
 	query.SetValue("vhost", u->vhost);
@@ -65,6 +65,7 @@ void IRC2SQL::OnUserConnect(User *u, bool &exempt)
 	query.SetValue("ip", u->ip);
 	query.SetValue("ident", u->GetIdent());
 	query.SetValue("vident", u->GetVIdent());
+	query.SetValue("secure", u->HasMode("SSL") || u->HasExt("SSL") ? "Y" : "N");
 	query.SetValue("account", u->Account() ? u->Account()->display : "");
 	query.SetValue("fingerprint", u->fingerprint);
 	query.SetValue("signon", u->signon);
@@ -95,7 +96,8 @@ void IRC2SQL::OnUserNickChange(User *u, const Anope::string &oldnick)
 
 void IRC2SQL::OnFingerprint(User *u)
 {
-	query = "UPDATE `" + prefix + "user` SET fingerprint=@fingerprint@ WHERE nick=@nick@";
+	query = "UPDATE `" + prefix + "user` SET secure=@secure@, fingerprint=@fingerprint@ WHERE nick=@nick@";
+	query.SetValue("secure", u->HasMode("SSL") || u->HasExt("SSL") ? "Y" : "N");
 	query.SetValue("fingerprint", u->fingerprint);
 	query.SetValue("nick", u->nick);
 	this->RunQuery(query);

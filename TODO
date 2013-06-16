@@ -10,7 +10,7 @@ track users:
 	[x] increase the user count in the server info
 [x] OnUserQuit - make a stored procedure
 	[x] remove the user from the user table
-	[ ] remove the user from the ison table (OnLeaveChannel is not called)
+	[ ] remove the user from the ison table (OnLeaveChannel is not called on quit)
 	[x] decrease the user count in the server info
 [x] OnUserNickChange - use a simple UPDATE query
 [x] OnFingerprint (store the users fingerprint in the user table)
@@ -34,9 +34,6 @@ track channels:
 other stuff:
 [ ] OnAddXLine (xlines are not tracked by current phpanope/MagIRC, so this is low priority)
 [ ] OnDelXLine
-[ ] cleanup "script" as mysql event to remove users/servers who are not online after a given time
-    [ ] readd a timestamp field to the tables to track when they gone off
-    [ ] add config options for how long we want to keep offline users + servers
 [ ] disable/remove any events on shutdown
     (make it a part of the stored procedure that cleans the users on shutdown)
 
@@ -62,3 +59,4 @@ Known bugs and limitations:
  - botserv bots have no servid, because they get introduced before the local server
      fixes itself on the next anope start if we dont drop the server table
  - OnJoinChannel is not called for botserv bots
+ - botserv bots are not added to the ISON table ?

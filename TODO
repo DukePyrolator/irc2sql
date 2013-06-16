@@ -10,7 +10,7 @@ track users:
 	[x] increase the user count in the server info
 [x] OnUserQuit - make a stored procedure
 	[x] remove the user from the user table
-	[ ] remove the user from the ison table (OnLeaveChannel is not called on quit)
+	[x] remove the user from the ison table (OnLeaveChannel is not called on quit)
 	[x] decrease the user count in the server info
 [x] OnUserNickChange - use a simple UPDATE query
 [x] OnFingerprint (store the users fingerprint in the user table)

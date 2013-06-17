@@ -174,4 +174,17 @@ void IRC2SQL::OnLeaveChannel(User *u, Channel *c) anope_override
 	this->RunQuery(query);
 }
 
+void IRC2SQL::OnTopicUpdated(Channel *c, const Anope::string &user, const Anope::string &topic) anope_override
+{
+	query = "UPDATE `" + prefix + "chan` "
+		"SET topic=@topic@, topicauthor=@author@, topictime=FROM_UNIXTIME(@time@) "
+		"WHERE channel=@channel@";
+	query.SetValue("topic", c->topic);
+	query.SetValue("author", c->topic_setter);
+	query.SetValue("time", c->topic_ts);
+	query.SetValue("channel", c->name);
+	this->RunQuery(query);
+}
+
+
 MODULE_INIT(IRC2SQL)

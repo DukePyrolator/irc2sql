@@ -63,6 +63,8 @@ class IRC2SQL : public Module
 	void OnLeaveChannel(User *u, Channel *c) anope_override;
 	void OnJoinChannel(User *u, Channel *c) anope_override;
 
+	void OnTopicUpdated(Channel *c, const Anope::string &user, const Anope::string &topic) anope_override;
+
 };
 
 

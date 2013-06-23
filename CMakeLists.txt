@@ -5,3 +5,7 @@ install(FILES ${DATA}
   DESTINATION ${CONF_DIR}
 )
 
+set(DATA geoipupdate)
+install (FILES ${DATA}
+  DESTINATION ${BIN_DIR}
+)

@@ -2,53 +2,62 @@
 
 void IRC2SQL::CheckTables()
 {
+	Anope::string geoquery("");
+
 	/* TODO: remove the DropTable commands when the table layout is done
 	 *       perhaps we should drop/recreate some tables by default in case anope crashed
 	 *       and was unable to clear the content (ison)
 	 *       TRUNCATE could perform better for this?
 	 */
 	SQL::Result r;
-	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "clients"));
-	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "countries"));
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "user"));
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "server"));
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "chan"));
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "ison"));
 
 	this->GetTables();
-	/* TODO: do we need this table? we can store the client version in the user table
-	 * phpdenora/MagIRC can use triggers or a view to gather this informations
-	 */
-	if (!this->HasTable(prefix + "clients"))
+
+	if (UseGeoIP && GeoIPDB.equals_ci("country") && !this->HasTable(prefix + "geoip_country"))
 	{
-		query = "CREATE TABLE `" + prefix + "clients` ("
-			"`id` int(11) NOT NULL AUTO_INCREMENT,"
-			"`version` varchar(255) NOT NULL,"
-			"`count` int(11) NOT NULL,"
-			"`overall` int(11) NOT NULL,"
-			"PRIMARY KEY (`id`),"
-			"UNIQUE KEY `version` (`version`)"
+		query = "CREATE TABLE `" + prefix + "geoip_country` ("
+			"`start` INT UNSIGNED NOT NULL,"
+			"`end` INT UNSIGNED NOT NULL,"
+			"`countrycode` varchar(2),"
+			"`countryname` varchar(50),"
+			"UNIQUE KEY (`start`, `end`)"
 			") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 		this->RunQuery(query);
 	}
-	/* do we need the country table?
-	 * we can do the geoiplookup via an SQL trigger and use the geoipdatabase from
-	 * http://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip or
-	 * http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.zip
-	 * and import the .csv into mysql via an external script.
-	 * this should not be part of the irc2sql gateway. could be a part of MagIRC
-	 */
-	if (!this->HasTable(prefix + "countries"))
+	if (UseGeoIP && GeoIPDB.equals_ci("city") && !this->HasTable(prefix + "geoip_city_blocks"))
 	{
-		query = "CREATE TABLE `" + prefix + "countries` ("
-			"`id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,"
-			"`code` varchar(3) NOT NULL,"
-			"`name` varchar(32) NOT NULL,"
-			"`count` int(11) NOT NULL,"
-			"`overall` int(11) NOT NULL,"
-			"PRIMARY KEY (`id`),"
-			"UNIQUE KEY `code` (`code`),"
-			"UNIQUE KEY `name` (`name`)"
+		query = "CREATE TABLE `" + prefix + "geoip_city_blocks` ("
+			"`start` INT UNSIGNED NOT NULL,"
+			"`end` INT UNSIGNED NOT NULL,"
+			"`locId` INT UNSIGNED NOT NULL, "
+			"PRIMARY KEY (`start`,`end`)"
+			") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+		this->RunQuery(query);
+	}
+	if (UseGeoIP && GeoIPDB.equals_ci("city") && !this->HasTable(prefix + "geoip_city_location"))
+	{
+		query = "CREATE TABLE `" + prefix + "geoip_city_location` ("
+			"`locId` INT UNSIGNED NOT NULL,"
+			"`country` CHAR(2) NOT NULL,"
+			"`region` CHAR(2) NOT NULL,"
+			"`city` VARCHAR(50),"
+			"`latitude` FLOAT,"
+			"`longitude` FLOAT,"
+			"`areaCode` INT,"
+			"PRIMARY KEY (`locId`)"
+			") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+		this->RunQuery(query);
+	}
+	if (UseGeoIP && GeoIPDB.equals_ci("city") && !this->HasTable(prefix + "geoip_city_region"))
+	{	query = "CREATE TABLE `" + prefix + "geoip_city_region` ("
+			"`country` CHAR(2) NOT NULL,"
+			"`region` CHAR(2) NOT NULL,"
+			"`regionname` VARCHAR(100) NOT NULL,"
+			"PRIMARY KEY (`country`,`region`)"
 			") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 		this->RunQuery(query);
 	}
@@ -113,7 +122,9 @@ void IRC2SQL::CheckTables()
 			"`ctcpversion` varchar(255) NOT NULL DEFAULT '',"
 			"`geocode` varchar(16) NOT NULL DEFAULT '',"
 			"`geocountry` varchar(64) NOT NULL DEFAULT '',"
+			"`georegion` varchar(100) NOT NULL DEFAULT '',"
 			"`geocity` varchar(128) NOT NULL DEFAULT '',"
+			"`locId` INT UNSIGNED,"
 			"PRIMARY KEY (`nickid`),"
 			"UNIQUE KEY `nick` (`nick`),"
 			"KEY `servid` (`servid`)"
@@ -133,6 +144,27 @@ void IRC2SQL::CheckTables()
 	}
 	if (this->HasProcedure(prefix + "UserConnect"))
 		this->RunQuery(SQL::Query("DROP PROCEDURE " + prefix + "UserConnect"));
+
+	if (UseGeoIP)
+	{
+		if (GeoIPDB.equals_ci("country"))
+			geoquery = "UPDATE `" + prefix + "user` AS u "
+					"JOIN `" + prefix + "geoip_country` AS c "
+					"ON INET_ATON(ip_) BETWEEN c.start AND c.end "
+					"SET u.geocode = c.countrycode, u.geocountry = c.countryname "
+					"WHERE u.nick = nick_; ";
+		else if (GeoIPDB.equals_ci("city"))
+			geoquery = "UPDATE `" + prefix + "user` AS u "
+					"JOIN `" + prefix + "geoip_city_blocks` AS b "
+						"ON (INET_ATON(ip_) BETWEEN b.start and b.end) "
+					"JOIN `" + prefix + "geoip_city_location` AS l "
+						"ON (l.locId = b.locID) "
+					"LEFT JOIN `" + prefix + "geoip_city_region` AS r "
+						"ON (l.country=r.country AND l.region=r.region)"
+					"SET u.geocode=l.country, u.georegion=r.regionname, "
+						"u.geocity=l.city, u.locID = l.locID "
+					"WHERE u.nick = nick_;";
+	}
 	query = "CREATE PROCEDURE `" + prefix + "UserConnect`"
 		"(nick_ varchar(255), host_ varchar(255), vhost_ varchar(255), "
 		"chost_ varchar(255), realname_ varchar(255), ip_ varchar(255), "
@@ -157,6 +189,7 @@ void IRC2SQL::CheckTables()
 				"SET u.servid = s.id, "
 					"s.currentusers = s.currentusers + 1 "
 				"WHERE s.name = server_ AND u.nick = nick_;"
+			+ geoquery +
 		"END";
 	this->RunQuery(query);
 

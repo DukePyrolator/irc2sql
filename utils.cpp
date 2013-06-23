@@ -2,8 +2,6 @@
 
 void IRC2SQL::RunQuery(const SQL::Query &q)
 {
-	// TODO: remove this debug message later
-	Log(LOG_DEBUG_2) << "irc2sql: " << q.query;
 	if (sql)
 		sql->Run(&sqlinterface, q);
 }

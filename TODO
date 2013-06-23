@@ -19,7 +19,7 @@ track users:
 [x] OnUserLogin
 [x] OnNickLogout
 [ ] tracking host change requires adding a new event to anope
-[ ] provide geoiplookup through external script/mysql trigger (low priority)
+[x] provide geoiplookup
 
 track channels:
 [x] OnChannelCreate
@@ -34,8 +34,6 @@ track channels:
 other stuff:
 [ ] OnAddXLine (xlines are not tracked by current phpanope/MagIRC, so this is low priority)
 [ ] OnDelXLine
-[ ] disable/remove any events on shutdown
-    (make it a part of the stored procedure that cleans the users on shutdown)
 
 unclear?
 [?] OnChannelModeAdd ? (ircd depend?)
@@ -56,5 +54,3 @@ unclear?
 
 Known bugs and limitations:
 ============================
- - OnJoinChannel is not called for botserv bots
- - botserv bots are not added to the ISON table ?

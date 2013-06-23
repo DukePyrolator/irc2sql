@@ -12,6 +12,8 @@ void IRC2SQL::OnReload(Configuration::Conf *conf) anope_override
 {
 	Configuration::Block *block = Config->GetModule(this);
 	prefix = block->Get<const Anope::string>("prefix", "anope_");
+	UseGeoIP = block->Get<bool>("GeoIPLookup", "no");
+	GeoIPDB = block->Get<const Anope::string>("GeoIPDatabase", "country");
 	Anope::string engine = block->Get<const Anope::string>("engine");
 	this->sql = ServiceReference<SQL::Provider>("SQL::Provider", engine);
 	if (sql)

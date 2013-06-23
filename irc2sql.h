@@ -25,8 +25,8 @@ class IRC2SQL : public Module
 	MySQLInterface sqlinterface;
 	SQL::Query query;
 	std::vector<Anope::string> TableList, ProcedureList, EventList;
-	Anope::string prefix;
-	bool quitting, introduced_myself;
+	Anope::string prefix, GeoIPDB, GeoIPCountryDB, GeoIPCityDB;
+	bool quitting, introduced_myself, UseGeoIP;
 
 	void RunQuery(const SQL::Query &q);
 	void GetTables();

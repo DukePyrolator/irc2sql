@@ -19,8 +19,7 @@ geoip_city_source="http://geolite.maxmind.com/download/geoip/database/GeoLiteCit
 geoip_region_source="http://dev.maxmind.com/static/csv/codes/maxmind/region.csv"
 
 ###########################
-
-PARAMS="--delete --local --default_character_set=latin1 --fields-terminated-by=, --fields-enclosed-by=\" --lines-terminated-by=\n --host=$mysql_host --user=$mysql_user --password=$mysql_password $mysql_database"
+PARAMS="--delete --local --fields-terminated-by=, --fields-enclosed-by=\" --lines-terminated-by=\n --host=$mysql_host --user=$mysql_user --password=$mysql_password $mysql_database"
 
 if test $die = "yes"; then
 	echo "You have to edit this script first."
@@ -32,10 +31,12 @@ if test $geoip_database = "country"; then
 	wget -q -N $geoip_country_source
 	echo "Unpacking..."
 	unzip -jo GeoIPCountryCSV.zip
-	mv GeoIPCountryWhois.csv $prefix"geoip_country.csv"
+	rm GeoIPCountryCSV.zip
+	echo "Converting to UFT-8..."
+	iconv -f ISO-8859-1 -t UTF-8 GeoIPCountryWhois.csv -o $prefix"geoip_country.csv"
 	echo "Importing..."
 	mysqlimport --columns=@x,@x,start,end,countrycode,countryname $PARAMS $prefix"geoip_country.csv"
-	rm $prefix"geoip_country.csv" GeoIPCountryCSV.zip
+	rm $prefix"geoip_country.csv" GeoIPCountryWhois.csv
 	echo "Done..."
 elif test $geoip_database = "city"; then
 	echo "Downloading..."
@@ -43,13 +44,16 @@ elif test $geoip_database = "city"; then
 	wget -q -N $geoip_region_source
 	echo "Unpacking..."
 	unzip -jo GeoLiteCity-latest.zip
-	mv GeoLiteCity-Blocks.csv $prefix"geoip_city_blocks.csv"
-	mv GeoLiteCity-Location.csv $prefix"geoip_city_location.csv"
-	mv region.csv $prefix"geoip_city_region.csv"
+	rm GeoLiteCity-latest.zip
+	echo "Converting to utf-8..."
+	iconv -f ISO-8859-1 -t UTF-8 GeoLiteCity-Blocks.csv -o $prefix"geoip_city_blocks.csv"
+	iconv -f ISO-8859-1 -t UTF-8 GeoLiteCity-Location.csv -o $prefix"geoip_city_location.csv"
+	iconv -f ISO-8859-1 -t UTF-8 region.csv -o $prefix"geoip_city_region.csv"
+	rm GeoLiteCity-Blocks.csv GeoLiteCity-Location.csv region.csv
 	echo "Importing..."
 	mysqlimport --columns=start,end,locID $PARAMS $prefix"geoip_city_blocks.csv"
 	mysqlimport --columns=locID,country,region,city,@x,latitude,longitude,@x,areaCode $PARAMS $prefix"geoip_city_location.csv"
 	mysqlimport --columns=country,region,regionname $PARAMS $prefix"geoip_city_region.csv"
-	rm $prefix"geoip_city_blocks.csv" $prefix"geoip_city_location.csv" GeoLiteCity-latest.zip $prefix"geoip_city_region.csv"
+	rm $prefix"geoip_city_blocks.csv" $prefix"geoip_city_location.csv" $prefix"geoip_city_region.csv"
 	echo "Done..."
 fi

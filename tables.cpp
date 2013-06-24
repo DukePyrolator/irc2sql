@@ -149,17 +149,19 @@ void IRC2SQL::CheckTables()
 	{
 		if (GeoIPDB.equals_ci("country"))
 			geoquery = "UPDATE `" + prefix + "user` AS u "
-					"JOIN `" + prefix + "geoip_country` AS c "
-					"ON INET_ATON(ip_) BETWEEN c.start AND c.end "
+					"JOIN ( SELECT `countrycode`, `countryname` "
+						"FROM `" + prefix + "geoip_country` "
+						"WHERE `start` <= INET_ATON(ip_) "
+						"ORDER BY `start` ASC LIMIT 1 ) as c "
 					"SET u.geocode = c.countrycode, u.geocountry = c.countryname "
 					"WHERE u.nick = nick_; ";
 		else if (GeoIPDB.equals_ci("city"))
 			geoquery = "UPDATE `" + prefix + "user` AS u "
-					"JOIN `" + prefix + "geoip_city_blocks` AS b "
-						"ON (INET_ATON(ip_) BETWEEN b.start and b.end) "
+					"JOIN ( SELECT `locID` FROM `" + prefix + "geoip_city_blocks` "
+						"WHERE `start` <= INET_ATON(ip_) ORDER BY `start` ASC LIMIT 1) as b "
 					"JOIN `" + prefix + "geoip_city_location` AS l "
 						"ON (l.locId = b.locID) "
-					"LEFT JOIN `" + prefix + "geoip_city_region` AS r "
+					"JOIN `" + prefix + "geoip_city_region` AS r "
 						"ON (l.country=r.country AND l.region=r.region)"
 					"SET u.geocode=l.country, u.georegion=r.regionname, "
 						"u.geocity=l.city, u.locID = l.locID "

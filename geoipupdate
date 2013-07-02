@@ -4,7 +4,7 @@
 # Config
 ############################
 
-geoip_database="country"
+geoip_database="country" # available options: "country" and "city"
 mysql_host="localhost"
 mysql_user="anope"
 mysql_password="anope"
@@ -19,7 +19,8 @@ geoip_city_source="http://geolite.maxmind.com/download/geoip/database/GeoLiteCit
 geoip_region_source="http://dev.maxmind.com/static/csv/codes/maxmind/region.csv"
 
 ###########################
-PARAMS="--delete --local --fields-terminated-by=, --fields-enclosed-by=\" --lines-terminated-by=\n --host=$mysql_host --user=$mysql_user --password=$mysql_password $mysql_database"
+LOGIN="--host=$mysql_host --user=$mysql_user --password=$mysql_password $mysql_database"
+PARAMS="--delete --local --fields-terminated-by=, --fields-enclosed-by=\" --lines-terminated-by=\n $LOGIN"
 
 if test $die = "yes"; then
 	echo "You have to edit this script first."
@@ -35,7 +36,7 @@ if test $geoip_database = "country"; then
 	echo "Converting to UFT-8..."
 	iconv -f ISO-8859-1 -t UTF-8 GeoIPCountryWhois.csv -o $prefix"geoip_country.csv"
 	echo "Importing..."
-	mysqlimport --columns=@x,@x,start,end,countrycode,countryname $PARAMS $prefix"geoip_country.csv"
+	mysqlimport --columns=@x,@x,@start,end,countrycode,countryname $PARAMS $prefix"geoip_country.csv"
 	rm $prefix"geoip_country.csv" GeoIPCountryWhois.csv
 	echo "Done..."
 elif test $geoip_database = "city"; then
@@ -51,8 +52,8 @@ elif test $geoip_database = "city"; then
 	iconv -f ISO-8859-1 -t UTF-8 region.csv -o $prefix"geoip_city_region.csv"
 	rm GeoLiteCity-Blocks.csv GeoLiteCity-Location.csv region.csv
 	echo "Importing..."
-	mysqlimport --columns=start,end,locID $PARAMS $prefix"geoip_city_blocks.csv"
-	mysqlimport --columns=locID,country,region,city,@x,latitude,longitude,@x,areaCode $PARAMS $prefix"geoip_city_location.csv"
+	mysqlimport --columns=@start,end,locID --ignore-lines=2 $PARAMS $prefix"geoip_city_blocks.csv"
+	mysqlimport --columns=locID,country,region,city,@x,latitude,longitude,@x,areaCode --ignore-lines=2 $PARAMS $prefix"geoip_city_location.csv"
 	mysqlimport --columns=country,region,regionname $PARAMS $prefix"geoip_city_region.csv"
 	rm $prefix"geoip_city_blocks.csv" $prefix"geoip_city_location.csv" $prefix"geoip_city_region.csv"
 	echo "Done..."

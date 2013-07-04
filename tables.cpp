@@ -71,8 +71,6 @@ void IRC2SQL::CheckTables()
 			"`split_time` datetime DEFAULT NULL,"
 			"`version` varchar(127) NOT NULL,"
 			"`currentusers` int(15) NOT NULL,"
-			"`maxusers` int(15) NOT NULL,"
-			"`maxusertime` datetime NOT NULL,"
 			"`online` enum('Y','N') NOT NULL DEFAULT 'Y',"
 			"`ulined` enum('Y','N') NOT NULL DEFAULT 'N',"
 			"PRIMARY KEY (`id`),"
@@ -141,6 +139,17 @@ void IRC2SQL::CheckTables()
 			") ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 		this->RunQuery(query);
 	}
+	if (!this->HasTable(prefix + "maxusers"))
+	{
+		query = "CREATE TABLE `" + prefix + "maxusers` ("
+			"`name` VARCHAR(255) NOT NULL,"
+			"`maxusers` INT(15) NOT NULL,"
+			"`maxtime` DATETIME NOT NULL,"
+			"`lastused` DATETIME NOT NULL,"
+			"UNIQUE KEY `name` (`name`)"
+			") ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+		this->RunQuery(query);
+	}
 	if (this->HasProcedure(prefix + "UserConnect"))
 		this->RunQuery(SQL::Query("DROP PROCEDURE " + prefix + "UserConnect"));
 
@@ -178,6 +187,8 @@ void IRC2SQL::CheckTables()
 		"server_ varchar(255), uuid_ varchar(32), modes_ varchar(255), "
 		"oper_ enum('Y','N')) "
 		"BEGIN "
+			"DECLARE cur int(15);"
+			"DECLARE max int(15);"
 			"INSERT INTO `" + prefix + "user` "
 				"(nick, host, vhost, chost, realname, ip, ident, vident, account, "
 				"secure, fingerprint, signon, server, uuid, modes, oper) "
@@ -194,6 +205,17 @@ void IRC2SQL::CheckTables()
 				"SET u.servid = s.id, "
 					"s.currentusers = s.currentusers + 1 "
 				"WHERE s.name = server_ AND u.nick = nick_;"
+			"SELECT `currentusers` INTO cur FROM `" + prefix + "server` WHERE name=server_;"
+			"SELECT `maxusers` INTO max FROM `" + prefix + "maxusers` WHERE name=server_;"
+			"IF found_rows() AND cur <= max THEN "
+				"UPDATE `" + prefix + "maxusers` SET lastused=now() WHERE name=server_;"
+			"ELSE "
+				"INSERT INTO `" + prefix + "maxusers` (name, maxusers, maxtime, lastused) "
+					"VALUES ( server_, cur, now(), now() ) "
+					"ON DUPLICATE KEY UPDATE "
+						"name=VALUES(name), maxusers=VALUES(maxusers),"
+						"maxtime=VALUES(maxtime), lastused=VALUES(lastused);"
+			"END IF;"
 			+ geoquery +
 		"END";
 	this->RunQuery(query);
@@ -242,12 +264,25 @@ void IRC2SQL::CheckTables()
 	query = "CREATE PROCEDURE `"+ prefix + "JoinUser`"
 		"(nick_ varchar(255), channel_ varchar(255), modes_ varchar(255)) "
 		"BEGIN "
+			"DECLARE cur int(15);"
+			"DECLARE max int(15);"
 			"INSERT INTO `" + prefix + "ison` (nickid, chanid, modes) "
 				"SELECT u.nickid, c.chanid, modes_ "
 				"FROM " + prefix + "user AS u, " + prefix + "chan AS c "
 				"WHERE u.nick=nick_ AND c.channel=channel_;"
 			"UPDATE `" + prefix + "chan` SET currentusers=currentusers+1 "
 				"WHERE channel=channel_;"
+			"SELECT `currentusers` INTO cur FROM `" + prefix + "chan` WHERE channel=channel_;"
+			"SELECT `maxusers` INTO max FROM `" + prefix + "maxusers` WHERE name=channel_;"
+			"IF found_rows() AND cur <= max THEN "
+				"UPDATE `" + prefix + "maxusers` SET lastused=now() WHERE name=channel_;"
+			"ELSE "
+				"INSERT INTO `" + prefix + "maxusers` (name, maxusers, maxtime, lastused) "
+					"VALUES ( channel_, cur, now(), now() ) "
+					"ON DUPLICATE KEY UPDATE "
+						"name=VALUES(name), maxusers=VALUES(maxusers),"
+						"maxtime=VALUES(maxtime), lastused=VALUES(lastused);"
+			"END IF;"
 		"END";
 	this->RunQuery(query);
 

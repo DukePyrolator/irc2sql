@@ -11,7 +11,6 @@ void IRC2SQL::CheckTables()
 	 */
 	SQL::Result r;
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "user"));
-	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "server"));
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "chan"));
 	r = this->sql->RunQuery(SQL::Query("DROP TABLE " + prefix + "ison"));
 
@@ -120,7 +119,7 @@ void IRC2SQL::CheckTables()
 			"`oper` enum('Y','N') NOT NULL DEFAULT 'N',"
 			"`away` enum('Y','N') NOT NULL DEFAULT 'N',"
 			"`awaymsg` varchar(255) NOT NULL DEFAULT '',"
-			"`ctcpversion` varchar(255) NOT NULL DEFAULT '',"
+			"`version` varchar(255) NOT NULL DEFAULT '',"
 			"`geocode` varchar(16) NOT NULL DEFAULT '',"
 			"`geocountry` varchar(64) NOT NULL DEFAULT '',"
 			"`georegion` varchar(100) NOT NULL DEFAULT '',"

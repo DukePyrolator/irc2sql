@@ -20,6 +20,13 @@ void IRC2SQL::OnReload(Configuration::Conf *conf) anope_override
 		this->CheckTables();
 	else
 		Log() << "IRC2SQL: no database connection to " << engine;
+
+	const Anope::string &snick = block->Get<const Anope::string>("client");
+	if (snick.empty())
+		throw ConfigException(Module::name + ": <client> must be defined");
+	StatServ = BotInfo::Find(snick, true);
+	if (!StatServ)
+		throw ConfigException(Module::name + ": no bot named " + snick);
 }
 
 void IRC2SQL::OnNewServer(Server *server) anope_override
@@ -49,7 +56,6 @@ void IRC2SQL::OnServerQuit(Server *server) anope_override
 void IRC2SQL::OnUserConnect(User *u, bool &exempt) anope_override
 {
 	if (!introduced_myself)
-
 	{
 		this->OnNewServer(Me);
 		introduced_myself = true;
@@ -74,6 +80,9 @@ void IRC2SQL::OnUserConnect(User *u, bool &exempt) anope_override
 	query.SetValue("modes", u->GetModes());
 	query.SetValue("oper", u->HasMode("OPER") ? "Y" : "N");
 	this->RunQuery(query);
+
+	IRCD->SendPrivmsg(StatServ, u->GetUID(), "\1VERSION\1");
+
 }
 
 void IRC2SQL::OnUserQuit(User *u, const Anope::string &msg) anope_override
@@ -188,5 +197,26 @@ void IRC2SQL::OnTopicUpdated(Channel *c, const Anope::string &user, const Anope:
 	this->RunQuery(query);
 }
 
+void IRC2SQL::OnBotNotice(User *u, BotInfo *bi, Anope::string &message) anope_override
+{
+	Anope::string versionstr;
+	if (bi != StatServ)
+		return;
+	if (message[0] == '\1' && message[message.length() - 1] == '\1')
+	{
+		if (message.substr(0, 9).equals_ci("\1VERSION "))
+		{
+			versionstr = message.substr(9, message.length() - 10);
+			if (versionstr.empty())
+				return;
+			query = "UPDATE `" + prefix + "user` "
+				"SET version=@version@ "
+				"WHERE nick=@nick@";
+			query.SetValue("version", versionstr);
+			query.SetValue("nick", u->nick);
+			this->RunQuery(query);
+		}
+	}
+}
 
 MODULE_INIT(IRC2SQL)

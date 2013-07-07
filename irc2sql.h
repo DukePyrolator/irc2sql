@@ -27,6 +27,7 @@ class IRC2SQL : public Module
 	std::vector<Anope::string> TableList, ProcedureList, EventList;
 	Anope::string prefix, GeoIPDB, GeoIPCountryDB, GeoIPCityDB;
 	bool quitting, introduced_myself, UseGeoIP;
+	BotInfo *StatServ;
 
 	void RunQuery(const SQL::Query &q);
 	void GetTables();
@@ -65,6 +66,7 @@ class IRC2SQL : public Module
 
 	void OnTopicUpdated(Channel *c, const Anope::string &user, const Anope::string &topic) anope_override;
 
+	void OnBotNotice(User *u, BotInfo *bi, Anope::string &message) anope_override;
 };
 
 

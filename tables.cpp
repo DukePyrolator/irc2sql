@@ -20,19 +20,23 @@ void IRC2SQL::CheckTables()
 	if (UseGeoIP && GeoIPDB.equals_ci("country") && !this->HasTable(prefix + "geoip_country"))
 	{
 		query = "CREATE TABLE `" + prefix + "geoip_country` ("
+			"`start` INT UNSIGNED NOT NULL,"
 			"`end` INT UNSIGNED NOT NULL,"
 			"`countrycode` varchar(2),"
 			"`countryname` varchar(50),"
-			"PRIMARY KEY (`end`)"
+			"PRIMARY KEY `end` (`end`),"
+			"KEY `start` (`start`)"
 			") ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 		this->RunQuery(query);
 	}
 	if (UseGeoIP && GeoIPDB.equals_ci("city") && !this->HasTable(prefix + "geoip_city_blocks"))
 	{
 		query = "CREATE TABLE `" + prefix + "geoip_city_blocks` ("
-			"`end` INT UNSIGNED NOT NULL, "
-			"`locId` INT UNSIGNED NOT NULL, "
-			"PRIMARY KEY (`end`)"
+			"`start` INT UNSIGNED NOT NULL,"
+			"`end` INT UNSIGNED NOT NULL,"
+			"`locId` INT UNSIGNED NOT NULL,"
+			"PRIMARY KEY `end` (`end`),"
+			"KEY `start` (`start`)"
 			") ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 		this->RunQuery(query);
 
@@ -159,7 +163,8 @@ void IRC2SQL::CheckTables()
 			geoquery = "UPDATE `" + prefix + "user` AS u "
 					"JOIN ( SELECT `countrycode`, `countryname` "
 						"FROM `" + prefix + "geoip_country` "
-						"WHERE `end` >= INET_ATON(ip_) "
+						"WHERE INET_ATON(ip_) <= `end` "
+						"AND `start` <= INET_ATON(ip_) "
 						"ORDER BY `end` ASC LIMIT 1 ) as c "
 					"SET u.geocode = c.countrycode, u.geocountry = c.countryname "
 					"WHERE u.nick = nick_; ";
@@ -167,9 +172,11 @@ void IRC2SQL::CheckTables()
 			geoquery = "UPDATE `" + prefix + "user` as u "
 					"JOIN ( SELECT * FROM `" + prefix + "geoip_city_location` "
 						"WHERE `locID` = ( SELECT `locID` "
-									"FROM `" + prefix + "geoip_city_blocks` "
-									"WHERE `end` >= INET_ATON(ip_) "
-									"ORDER BY `end` ASC LIMIT 1 )) as l "
+								"FROM `" + prefix + "geoip_city_blocks` "
+								"WHERE INET_ATON(ip_) <= `end` "
+								"AND `start` <= INET_ATON(ip_) "
+								"ORDER BY `end` ASC LIMIT 1 ) "
+						") as l "
 					"SET u.geocode = l.country, "
 					    "u.geocity = l.city, "
 					    "u.locID = l.locID, "

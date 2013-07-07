@@ -36,7 +36,7 @@ if test $geoip_database = "country"; then
 	echo "Converting to UFT-8..."
 	iconv -f ISO-8859-1 -t UTF-8 GeoIPCountryWhois.csv -o $prefix"geoip_country.csv"
 	echo "Importing..."
-	mysqlimport --columns=@x,@x,@start,end,countrycode,countryname $PARAMS $prefix"geoip_country.csv"
+	mysqlimport --columns=@x,@x,start,end,countrycode,countryname $PARAMS $prefix"geoip_country.csv"
 	rm $prefix"geoip_country.csv" GeoIPCountryWhois.csv
 	echo "Done..."
 elif test $geoip_database = "city"; then
@@ -52,7 +52,7 @@ elif test $geoip_database = "city"; then
 	iconv -f ISO-8859-1 -t UTF-8 region.csv -o $prefix"geoip_city_region.csv"
 	rm GeoLiteCity-Blocks.csv GeoLiteCity-Location.csv region.csv
 	echo "Importing..."
-	mysqlimport --columns=@start,end,locID --ignore-lines=2 $PARAMS $prefix"geoip_city_blocks.csv"
+	mysqlimport --columns=start,end,locID --ignore-lines=2 $PARAMS $prefix"geoip_city_blocks.csv"
 	mysqlimport --columns=locID,country,region,city,@x,latitude,longitude,@x,areaCode --ignore-lines=2 $PARAMS $prefix"geoip_city_location.csv"
 	mysqlimport --columns=country,region,regionname $PARAMS $prefix"geoip_city_region.csv"
 	rm $prefix"geoip_city_blocks.csv" $prefix"geoip_city_location.csv" $prefix"geoip_city_region.csv"

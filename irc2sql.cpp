@@ -206,7 +206,11 @@ void IRC2SQL::OnBotNotice(User *u, BotInfo *bi, Anope::string &message) anope_ov
 	{
 		if (message.substr(0, 9).equals_ci("\1VERSION "))
 		{
-			versionstr = message.substr(9, message.length() - 10);
+			if (u->HasExt("CTCPVERSION"))
+				return;
+			u->Extend<bool>("CTCPVERSION");
+
+			versionstr = Anope::NormalizeBuffer(message.substr(9, message.length() - 10));
 			if (versionstr.empty())
 				return;
 			query = "UPDATE `" + prefix + "user` "

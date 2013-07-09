@@ -25,9 +25,10 @@ class IRC2SQL : public Module
 	MySQLInterface sqlinterface;
 	SQL::Query query;
 	std::vector<Anope::string> TableList, ProcedureList, EventList;
-	Anope::string prefix, GeoIPDB, GeoIPCountryDB, GeoIPCityDB;
+	Anope::string prefix, GeoIPDB;
 	bool quitting, introduced_myself, UseGeoIP;
 	BotInfo *StatServ;
+	PrimitiveExtensibleItem<bool> versionreply;
 
 	void RunQuery(const SQL::Query &q);
 	void GetTables();
@@ -40,7 +41,7 @@ class IRC2SQL : public Module
 
  public:
 	IRC2SQL(const Anope::string &modname, const Anope::string &creator) :
-		Module(modname, creator, EXTRA | THIRD), sql("", ""), sqlinterface(this)
+		Module(modname, creator, EXTRA | THIRD), sql("", ""), sqlinterface(this), versionreply(this, "CTCPVERSION")
 	{
 		quitting = false;
 		introduced_myself = false;

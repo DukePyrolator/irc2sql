@@ -1,54 +1,13 @@
-track servers:
-[x] OnNewServer
-[x] OnServerConnect
-[x] OnServerQuit
-
-track users:
-[x] OnUserConnect - make a stored procedure
-	[x] add a new user to the user table / update existing user?
-	[x] get the server id
-	[x] increase the user count in the server info
-[x] OnUserQuit - make a stored procedure
-	[x] remove the user from the user table
-	[x] remove the user from the ison table (OnLeaveChannel is not called on quit)
-	[x] decrease the user count in the server info
-[x] OnUserNickChange - use a simple UPDATE query
-[x] OnFingerprint (store the users fingerprint in the user table)
-[x] OnUserModeSet
-[x] OnUserModeUnset
-[x] OnUserLogin
-[x] OnNickLogout
-[ ] tracking host change requires adding a new event to anope
-[x] provide geoiplookup
-
-track channels:
-[x] OnChannelCreate
-[x] OnChannelDelete
-[ ] OnChannelModeSet
-[ ] OnChannelModeUnset
-[x] OnTopicUpdated
-[x] OnLeaveChannel (From either parting, being kicked, or quitting/killed)
-[x] OnJoinChannel
-[ ] OnSetCurrentModes ?
-
-other stuff:
-[ ] OnAddXLine (xlines are not tracked by current phpanope/MagIRC, so this is low priority)
-[ ] OnDelXLine
-
-unclear?
-[?] OnChannelModeAdd ? (ircd depend?)
-[?] OnBotAssign (make the botserv join the channel?)
-[?] OnBotUnassign (make the botserv part the channel?)
-[?] OnCreateBot
-[?] OnBotKick
+[ ] tracking host changes
+[ ] store XLines (xlines are not tracked by current phpanope/MagIRC, so this is low priority)
 [?] MOTD - requires modification of the protocol modules
+[?] SERVER UPTIME - requires modification of the protocol modules
 [?] SERVER PING - requires modification of the protocol modules
     I'm not sure if we really want this feature.
 [?] SERVER VERSION - requires modification of the protocol modules
 [?] CLIENT VERSION - probably requires a pseudoclient on some ircds/clients?
     needs testing
 [?] SWHOIS - requires modification of the protocol modules / adding new events
-
 
 ***************************************************************************************
 

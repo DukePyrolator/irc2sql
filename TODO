@@ -1,15 +1,13 @@
 [ ] tracking host changes
-[ ] store XLines (xlines are not tracked by current phpanope/MagIRC, so this is low priority)
+[ ] store XLines (xlines are not displayed by current phpanope/MagIRC, so this is low priority)
+
+
+Denora features that probably wont go into this module:
+
 [?] MOTD - requires modification of the protocol modules
 [?] SERVER UPTIME - requires modification of the protocol modules
 [?] SERVER PING - requires modification of the protocol modules
     I'm not sure if we really want this feature.
 [?] SERVER VERSION - requires modification of the protocol modules
-[?] CLIENT VERSION - probably requires a pseudoclient on some ircds/clients?
-    needs testing
 [?] SWHOIS - requires modification of the protocol modules / adding new events
 
-***************************************************************************************
-
-Known bugs and limitations:
-============================

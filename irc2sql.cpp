@@ -14,6 +14,8 @@ void IRC2SQL::OnReload(Configuration::Conf *conf) anope_override
 	prefix = block->Get<const Anope::string>("prefix", "anope_");
 	UseGeoIP = block->Get<bool>("GeoIPLookup", "no");
 	GeoIPDB = block->Get<const Anope::string>("GeoIPDatabase", "country");
+	ctcpuser = block->Get<bool>("ctcpuser", "no");
+	ctcpeob = block->Get<bool>("ctcpeob", "yes");
 	Anope::string engine = block->Get<const Anope::string>("engine");
 	this->sql = ServiceReference<SQL::Provider>("SQL::Provider", engine);
 	if (sql)
@@ -81,7 +83,8 @@ void IRC2SQL::OnUserConnect(User *u, bool &exempt) anope_override
 	query.SetValue("oper", u->HasMode("OPER") ? "Y" : "N");
 	this->RunQuery(query);
 
-	IRCD->SendPrivmsg(StatServ, u->GetUID(), "\1VERSION\1");
+	if (ctcpuser && (Me->IsSynced() || ctcpeob))
+		IRCD->SendPrivmsg(StatServ, u->GetUID(), "\1VERSION\1");
 
 }
 
@@ -137,6 +140,16 @@ void IRC2SQL::OnUserLogin(User *u)
 void IRC2SQL::OnNickLogout(User *u) anope_override
 {
 	this->OnUserLogin(u);
+}
+
+void IRC2SQL::OnSetDisplayedHost(User *u) anope_override
+{
+	query = "UPDATE `" + prefix + "user` "
+		"SET vhost=@vhost@ "
+		"WHERE nick=@nick@";
+	query.SetValue("vhost", u->GetDisplayedHost());
+	query.SetValue("nick", u->nick);
+	this->RunQuery(query);
 }
 
 void IRC2SQL::OnChannelCreate(Channel *c) anope_override

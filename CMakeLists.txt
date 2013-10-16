@@ -6,6 +6,6 @@ install(FILES ${DATA}
 )
 
 set(DATA geoipupdate)
-install (FILES ${DATA}
+install (PROGRAMS ${DATA}
   DESTINATION ${BIN_DIR}
 )

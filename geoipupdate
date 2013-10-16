@@ -1,8 +1,14 @@
 #!/bin/bash
 
+# This script is a helper script for the irc2sql module.
+# It downloads the configured geoip databases and inserts
+# them into existing mysql tables. The tables are created
+# by the irc2sql module on the first load.
+
 ############################
 # Config
 ############################
+
 
 geoip_database="country" # available options: "country" and "city"
 mysql_host="localhost"
